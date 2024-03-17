@@ -31,12 +31,10 @@ jobs:
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://localhost:3306 -timeout 1m
 
-      - name: Get Random Root Password
-        run: echo "Random Root Password: ${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
-
       - name: Run SQL Linting
         run: |
-          docker exec -i mariadb mysql -uroot -p"${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}" < db.sql
+          password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
+          docker exec -i mariadb mysql -uroot -p"$password" < db.sql
 
       - name: Stop MariaDB
         run: docker stop mariadb
