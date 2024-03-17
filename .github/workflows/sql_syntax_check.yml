@@ -6,30 +6,9 @@ on:
       - 'db.sql'
 
 jobs:
-  generate_init_sql:
-    name: Generate init.sql
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Generate init.sql
-        run: |
-          mkdir -p ${{ github.workspace }}/init
-          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > ${{ github.workspace }}/init/init.sql
-          echo "Generated init.sql at: ${{ github.workspace }}/init/init.sql"  # Output file path
-
-      - name: Upload init.sql artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: init-sql
-          path: ${{ github.workspace }}/init
-
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
-    needs: generate_init_sql
 
     services:
       mariadb:
@@ -42,14 +21,16 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+          --mount type=bind,source=${{ github.workspace }}/my-resolve.cnf,target=/etc/mysql/my-resolve.cnf,readonly  # Mount the configuration file
         ports:
           - 3306:3306
-        volumes:
-          - ${{ github.workspace }}/init:/docker-entrypoint-initdb.d
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
+      - name: Generate my-resolve.cnf
+        run: echo "[mariadb]\ndisable-skip-name-resolve=1" > ${{ github.workspace }}/my-resolve.cnf
 
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
@@ -57,4 +38,7 @@ jobs:
       - name: Run SQL Linting
         run: |
           password="${{ secrets.MYSQL_ROOT_PASSWORD }}"
-          docker exec -i ${{ job.services.mariadb.name }} mysql -h localhost -u root -p"$password" < db.sql
+          docker exec -i mariadb mysql -uroot -p"${password}" < db.sql
+
+      - name: Stop MariaDB
+        run: docker stop mariadb
