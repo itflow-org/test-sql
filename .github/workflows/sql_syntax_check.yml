@@ -17,6 +17,7 @@ jobs:
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"
           MARIADB_USER: user
           MARIADB_PASSWORD: password
+          MARIADB_DATABASE: db
         options: >-
           --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=10s
@@ -29,8 +30,7 @@ jobs:
 
       - name: Run SQL Linting
         run: |
-          password="${{ secrets.MYSQL_ROOT_PASSWORD }}"
-          docker exec -i mariadb mysql -uuser -ppassword < db.sql
+          docker exec -i mariadb mysql -uuser -ppassword db < db.sql
 
       - name: Stop MariaDB
         run: docker stop mariadb
