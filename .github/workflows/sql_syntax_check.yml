@@ -9,14 +9,12 @@ jobs:
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
-    env:
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Set your static password here
 
     services:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Use the same password for root
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
           MYSQL_DATABASE: test  # optional, create a test database if needed
         options: >-
           --health-cmd="mysqladmin ping"
@@ -33,9 +31,12 @@ jobs:
     - name: Wait for MariaDB to Start
       run: dockerize -wait tcp://localhost:3306 -timeout 1m
 
+    - name: Get Random Root Password
+      run: echo "Random Root Password: ${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
+
     - name: Run SQL Linting
       run: |
-        docker exec -i mariadb mysql -uroot -p"${DB_PASSWORD}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mariadb
