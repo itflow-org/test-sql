@@ -17,7 +17,7 @@ jobs:
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"
           MARIADB_USER: user
           MARIADB_PASSWORD: password
-          MARIADB_DATABASE: db
+          MARIADB_DATABASE: itflowdb
         options: >-
           --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=10s
@@ -29,8 +29,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run SQL Linting
-        run: |
-          docker exec -i mariadb mysql -uuser -ppassword db < db.sql
+        run: mysql --host 127.0.0.1 -uuser -ppassword itflowdb < db.sql
 
       - name: Stop MariaDB
         run: docker stop mariadb
