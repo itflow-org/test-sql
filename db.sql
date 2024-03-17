@@ -151,7 +151,7 @@ CREATE TABLE `assets` (
   `asset_vendor_id` int(11) NOT NULL DEFAULT 0,
   `asset_location_id` int(11) NOT NULL DEFAULT 0,
   `asset_contact_id` int(11) NOT NULL DEFAULT 0,
-  `asset_network_id` int(11) NOT NULL DEFAULT 0,
+  `asset_network_id` int(11) NOT NULL DEFAULT 0
   `asset_client_id` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`asset_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
