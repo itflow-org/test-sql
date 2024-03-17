@@ -31,7 +31,7 @@ jobs:
 
     - name: Run SQL Linting
       run: |
-        docker exec -i mariadb mysql -uroot -p"${{ env.DB_PASSWORD }}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${{ secrets.DB_PASSWORD }}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mariadb
