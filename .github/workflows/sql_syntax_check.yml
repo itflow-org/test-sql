@@ -28,7 +28,7 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run SQL Linting
         run: mysql --host 127.0.0.1 -uuser -ppassword itfsyntaxdb < db.sql
