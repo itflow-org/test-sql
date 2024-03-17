@@ -6,44 +6,36 @@ on:
       - 'db.sql'
 
 jobs:
-  generate_password:
-    name: Generate DB Password
-    runs-on: ubuntu-latest
-    outputs:
-      db_password: ${{ steps.set_password.outputs.db_password }}
-
-    steps:
-    - name: Set DB Password
-      id: set_password
-      run: echo "::set-output name=db_password::$(openssl rand -base64 12)"
-
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
-    env:
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     services:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ steps.set_password.outputs.db_password }}
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
+          MYSQL_DATABASE: test  # optional, create a test database if needed
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
+          --mount type=bind,source=${{ github.workspace }}/.github/workflows/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
+        ports:
+          - 3306:3306
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Wait for MariaDB to Start
-      run: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - name: Wait for MariaDB to Start
+        run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
-    - name: Run SQL Linting
-      run: |
-        docker exec -i mariadb mysql -uroot -p"${{ steps.set_password.outputs.db_password }}" < db.sql
+      - name: Run SQL Linting
+        run: |
+          password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
+          docker exec -i mariadb mysql -uroot -p"$password" < db.sql
 
-    - name: Stop MariaDB
-      run: docker stop mariadb
+      - name: Stop MariaDB
+        run: docker stop mariadb
