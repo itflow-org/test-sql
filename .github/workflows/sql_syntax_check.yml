@@ -25,18 +25,18 @@ jobs:
           - 3306:3306
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+      - name: Checkout Repository
+        uses: actions/checkout@v2
 
-    - name: Wait for MariaDB to Start
-      run: dockerize -wait tcp://localhost:3306 -timeout 1m
+      - name: Wait for MariaDB to Start
+        run: dockerize -wait tcp://localhost:3306 -timeout 1m
 
-    - name: Get Random Root Password
-      run: echo "Random Root Password: ${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
+      - name: Get Random Root Password
+        run: echo "Random Root Password: ${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
 
-    - name: Run SQL Linting
-      run: |
-        docker exec -i mariadb mysql -uroot -p"${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}" < db.sql
+      - name: Run SQL Linting
+        run: |
+          docker exec -i mariadb mysql -uroot -p"${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}" < db.sql
 
-    - name: Stop MariaDB
-      run: docker stop mariadb
+      - name: Stop MariaDB
+        run: docker stop mariadb
