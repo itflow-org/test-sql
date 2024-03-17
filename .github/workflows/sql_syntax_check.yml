@@ -6,28 +6,17 @@ on:
       - 'db.sql'
 
 jobs:
-  generate_password:
-    name: Generate DB Password
-    runs-on: ubuntu-latest
-    outputs:
-      db_password: ${{ steps.set_password.outputs.db_password }}
-
-    steps:
-    - name: Set DB Password
-      id: set_password
-      run: echo "::set-output name=db_password::$(openssl rand -base64 12)"
-
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
     env:
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Set your static password here
 
     services:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_ROOT_PASSWORD: ${{ steps.set_password.outputs.db_password }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}  # Use the same password for root
           MYSQL_DATABASE: test  # optional, create a test database if needed
         options: >-
           --health-cmd="mysqladmin ping"
@@ -44,13 +33,9 @@ jobs:
     - name: Wait for MariaDB to Start
       run: dockerize -wait tcp://localhost:3306 -timeout 1m
 
-    - name: Initialize Database and Set Root Password
-      run: |
-        docker exec -i mariadb mysql -uroot -p"${{ steps.set_password.outputs.db_password }}" -e "source /github/workspace/.github/workflows/sql_syntax_check_init.sql"
-
     - name: Run SQL Linting
       run: |
-        docker exec -i mariadb mysql -uroot -p"${{ steps.set_password.outputs.db_password }}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${DB_PASSWORD}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mariadb
