@@ -10,29 +10,26 @@ jobs:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Set up MariaDB
-      uses: montudor/action-mysql@v1
-      with:
-        mysql-version: '10.6'
-        root-password: ${{ secrets.DB_PASSWORD }}
-
     - name: Wait for MariaDB to Start
       run: |
-        until docker exec mysql mysqladmin -uroot -p"${{ secrets.DB_PASSWORD }}" ping &> /dev/null; do
+        until docker exec mysql mysqladmin ping &> /dev/null; do
           echo "Waiting for MariaDB to start..."
           sleep 5
         done
 
-    - name: Get MariaDB Container IP
-      run: echo "::set-env name=MARIADB_IP::$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysql)"
-
     - name: Run SQL Linting
       run: |
-        docker exec mysql mysql -h ${{ env.MARIADB_IP }} -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
-
-    - name: Stop MariaDB
-      run: docker stop mysql
+        docker exec mysql mysql -h localhost -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
