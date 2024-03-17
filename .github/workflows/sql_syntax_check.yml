@@ -36,4 +36,4 @@ jobs:
       - name: Show tables
         run: |
           password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
-          mysql --host 127.0.0.1 -uuser -p"$password" itflowdb -e "show tables;"
+          mysql --host 127.0.0.1 -uroot -p"$password" itflowdb -e "show tables;"
