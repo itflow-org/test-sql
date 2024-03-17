@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Wait for MariaDB to Start
-        run: dockerize -wait tcp://localhost:3306 -timeout 1m
+        run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
       - name: Run SQL Linting
         run: |
