@@ -1,0 +1,29 @@
+name: SQL Syntax Check
+
+on:
+  pull_request:
+    paths:
+      - 'db.sql'
+
+jobs:
+  syntax_check:
+    name: Check SQL Syntax
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Validate SQL Syntax
+      uses: nanasess/setup-mysql@v1
+      with:
+        mysql-version: '10.5'
+        db-password: ${{ secrets.DB_PASSWORD }}
+      env:
+        DB_HOST: ${{ secrets.DB_HOST }}
+        DB_USER: ${{ secrets.DB_USER }}
+        DB_NAME: ${{ secrets.DB_NAME }}
+
+    - name: Run SQL Linting
+      run: |
+        mysql --host=$DB_HOST --user=$DB_USER --password=$DB_PASSWORD $DB_NAME < db.sql
