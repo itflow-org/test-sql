@@ -10,22 +10,23 @@ jobs:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
 
+    services:
+      mariadb:
+        image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Set up MariaDB
-      uses: montudor/action-mysql@v1
-      with:
-        mysql-version: '10.6'
-        root-password: ${{ secrets.DB_PASSWORD }}
-
     - name: Wait for MariaDB to Start
-      run: sleep 10
+      run: dockerize -wait tcp://localhost:3306 -timeout 1m
 
     - name: Run SQL Linting
       run: |
-        docker exec -i mysql mysql -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${{ secrets.DB_PASSWORD }}" < db.sql
 
     - name: Stop MariaDB
-      run: docker stop mysql
+      run: docker stop mariadb
