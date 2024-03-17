@@ -29,6 +29,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: List files in .github/workflows directory
+        run: ls -l .github/workflows
+        
+      - name: Print workspace path
+        run: echo "Workspace path: ${{ github.workspace }}"
+
+      - name: Debug
+        run: ls -l ${{ github.workspace }}/.github/workflows
+
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
