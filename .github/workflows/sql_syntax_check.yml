@@ -21,7 +21,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          --mount type=bind,source=${{ github.workspace }}/.github/workflows/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
+          --mount type=bind,source=${{ github.workspace }}/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
         ports:
           - 3306:3306
 
