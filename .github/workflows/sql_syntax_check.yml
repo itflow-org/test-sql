@@ -23,10 +23,10 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Wait for MariaDB to Start
+    - name: Wait for MariaDB to Initialize
       run: |
         until docker exec mysql mysqladmin ping &> /dev/null; do
-          echo "Waiting for MariaDB to start..."
+          echo "Waiting for MariaDB to initialize..."
           sleep 5
         done
 
