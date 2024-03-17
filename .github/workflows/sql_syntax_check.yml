@@ -29,7 +29,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Run SQL Linting
-        run: mysql --host 127.0.0.1 -uuser -ppassword itflowdb < db.sql
+        run: docker exec -i ${{ job.services.mariadb.name }} mysql -uuser -ppassword itflowdb < db.sql
 
       - name: Stop MariaDB
         run: docker stop mariadb
