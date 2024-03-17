@@ -498,7 +498,7 @@ CREATE TABLE `domains` (
   `domain_created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `domain_updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   `domain_archived_at` datetime DEFAULT NULL,
-  `domain_accessed_at` datetime DEFAULT NULL,
+  `domain_accessed_at` datetime DEFAULT NULL
   `domain_registrar` int(11) NOT NULL DEFAULT 0,
   `domain_webhost` int(11) NOT NULL DEFAULT 0,
   `domain_client_id` int(11) NOT NULL DEFAULT 0,
