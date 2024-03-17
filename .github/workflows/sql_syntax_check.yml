@@ -16,41 +16,35 @@ jobs:
 
       - name: Generate init.sql
         run: |
-          mkdir -p ${{ github.workspace }}/init
-          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > ${{ github.workspace }}/init/init.sql
+          mkdir -p init
+          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > init/init.sql
           echo "Generated init.sql at: ${{ github.workspace }}/init/init.sql"  # Output file path
+
+      - name: Upload init.sql artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: init-sql
+          path: init/init.sql
 
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
     needs: generate_init_sql
 
-    services:
-      mariadb:
-        image: mariadb:latest
-        env:
-          MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
-          MYSQL_DATABASE: test  # optional, create a test database if needed
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-          --mount type=bind,source=${{ github.workspace }}/init/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
-        ports:
-          - 3306:3306
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
+
+      - name: Download init.sql artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: init-sql
+          path: init
 
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
       - name: Run SQL Linting
         run: |
-          password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
-          docker exec -i mariadb mysql -uroot -p"$password" < db.sql
-
-      - name: Stop MariaDB
-        run: docker stop mariadb
+          password="${{ secrets.MYSQL_ROOT_PASSWORD }}"
+          docker run --rm -v ${{ github.workspace }}/init:/docker-entrypoint-initdb.d -e MYSQL_ROOT_PASSWORD=$password mariadb:latest mysql -h localhost -u root -p$MYSQL_ROOT_PASSWORD < /docker-entrypoint-initdb.d/init.sql
