@@ -26,6 +26,8 @@ jobs:
     services:
       mariadb:
         image: mariadb:latest
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ steps.set_password.outputs.db_password }}
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -41,7 +43,7 @@ jobs:
 
     - name: Run SQL Linting
       run: |
-        docker exec -i mariadb mysql -uroot -p"${DB_PASSWORD}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${{ steps.set_password.outputs.db_password }}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mariadb
