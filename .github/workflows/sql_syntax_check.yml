@@ -21,7 +21,11 @@ jobs:
         root-password: ${{ secrets.DB_PASSWORD }}
 
     - name: Wait for MariaDB to Start
-      run: sleep 10
+      run: |
+        until docker exec mysql mysqladmin -uroot -p"${{ secrets.DB_PASSWORD }}" ping &> /dev/null; do
+          echo "Waiting for MariaDB to start..."
+          sleep 5
+        done
 
     - name: Get MariaDB Container IP
       run: echo "::set-env name=MARIADB_IP::$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysql)"
