@@ -14,19 +14,18 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Start MariaDB Docker Container
-      run: |
-        docker run -d --name mariadb -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} mariadb:latest
-
-    - name: Install MySQL Client
-      run: sudo apt-get install mysql-client -y
+    - name: Set up MariaDB
+      uses: montudor/action-mysql@v1
+      with:
+        mysql-version: '10.6'
+        root-password: ${{ secrets.DB_PASSWORD }}
 
     - name: Wait for MariaDB to Start
       run: sleep 10
 
     - name: Run SQL Linting
       run: |
-        mysql --host=localhost --port=3306 --user=root --password=${{ secrets.DB_PASSWORD }} --database=${{ secrets.DB_NAME }} --execute="source db.sql"
+        docker exec -i mysql mysql -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
 
-    - name: Stop and Remove MariaDB Docker Container
-      run: docker stop mariadb && docker rm mariadb
+    - name: Stop MariaDB
+      run: docker stop mysql
