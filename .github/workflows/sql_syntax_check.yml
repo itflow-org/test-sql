@@ -6,21 +6,31 @@ on:
       - 'db.sql'
 
 jobs:
+  generate_password:
+    name: Generate DB Password
+    runs-on: ubuntu-latest
+    outputs:
+      db_password: ${{ steps.set_password.outputs.db_password }}
+
+    steps:
+    - name: Set DB Password
+      id: set_password
+      run: echo "::set-output name=db_password::$(openssl rand -base64 12)"
+
   syntax_check:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
+    env:
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
     services:
       mariadb:
         image: mariadb:latest
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }}
 
     steps:
     - name: Checkout Repository
@@ -31,7 +41,7 @@ jobs:
 
     - name: Run SQL Linting
       run: |
-        docker exec -i mariadb mysql -uroot -p"${{ secrets.DB_PASSWORD }}" < db.sql
+        docker exec -i mariadb mysql -uroot -p"${DB_PASSWORD}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mariadb
