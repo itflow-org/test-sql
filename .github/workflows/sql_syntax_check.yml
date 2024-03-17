@@ -16,12 +16,12 @@ jobs:
         env:
           MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
           MYSQL_DATABASE: test  # optional, create a test database if needed
+          MYSQL_LOG_CONSOLE: "1"  # Redirect logs to console
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          --skip-name-resolve=0  # Disable skip-name-resolve
         ports:
           - 3306:3306
 
@@ -35,7 +35,7 @@ jobs:
       - name: Run SQL Linting
         run: |
           password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
-          docker exec -i mariadb mysql -uroot -p"$password" < db.sql
+          docker exec -i mariadb mysql -uroot -p"$password" < db.sql 2> /dev/null  # Redirect error output to /dev/null
 
       - name: Stop MariaDB
         run: docker stop mariadb
