@@ -14,16 +14,19 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
-    - name: Validate SQL Syntax
-      uses: nanasess/setup-mysql@v1
-      with:
-        mysql-version: '10.5'
-        db-password: ${{ secrets.DB_PASSWORD }}
-      env:
-        DB_HOST: ${{ secrets.DB_HOST }}
-        DB_USER: ${{ secrets.DB_USER }}
-        DB_NAME: ${{ secrets.DB_NAME }}
+    - name: Start MariaDB Docker Container
+      run: |
+        docker run -d --name mariadb -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }} mariadb:latest
+
+    - name: Install MySQL Client
+      run: sudo apt-get install mysql-client -y
+
+    - name: Wait for MariaDB to Start
+      run: sleep 10
 
     - name: Run SQL Linting
       run: |
-        mysql --host=$DB_HOST --user=$DB_USER --password=$DB_PASSWORD $DB_NAME < db.sql
+        mysql --host=localhost --port=3306 --user=root --password=${{ secrets.DB_PASSWORD }} --database=${{ secrets.DB_NAME }} --execute="source db.sql"
+
+    - name: Stop and Remove MariaDB Docker Container
+      run: docker stop mariadb && docker rm mariadb
