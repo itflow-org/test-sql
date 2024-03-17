@@ -13,11 +13,14 @@ jobs:
     services:
       mariadb:
         image: mariadb:latest
-        environment:
+        env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        ports:
-          - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+          -e MYSQL_ROOT_PASSWORD=${{ secrets.DB_PASSWORD }}
 
     steps:
     - name: Checkout Repository
