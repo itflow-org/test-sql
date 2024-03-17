@@ -26,8 +26,6 @@ jobs:
     services:
       mariadb:
         image: mariadb:latest
-        env:
-          MYSQL_ROOT_PASSWORD: ${{ steps.set_password.outputs.db_password }}
         options: >-
           --health-cmd="mysqladmin ping"
           --health-interval=10s
@@ -40,6 +38,14 @@ jobs:
 
     - name: Wait for MariaDB to Start
       run: dockerize -wait tcp://localhost:3306 -timeout 1m
+
+    - name: Initialize Database and Set Root Password
+      run: |
+        docker exec mariadb mysql_install_db --user=mysql --auth-root-authentication-method=normal
+
+    - name: Set Root Password
+      run: |
+        docker exec -i mariadb mysql -uroot -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${{ steps.set_password.outputs.db_password }}';"
 
     - name: Run SQL Linting
       run: |
