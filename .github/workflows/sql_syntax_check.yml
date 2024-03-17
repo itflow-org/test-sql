@@ -16,8 +16,9 @@ jobs:
 
       - name: Generate init.sql
         run: |
-          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > ${{ github.workspace }}/init.sql
-          echo "Generated init.sql at: ${{ github.workspace }}/init.sql"  # Output file path
+          mkdir -p ${{ github.workspace }}/init
+          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > ${{ github.workspace }}/init/init.sql
+          echo "Generated init.sql at: ${{ github.workspace }}/init/init.sql"  # Output file path
 
   syntax_check:
     name: Check SQL Syntax
@@ -35,7 +36,7 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          --mount type=bind,source=${{ github.workspace }}/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
+          --mount type=bind,source=${{ github.workspace }}/init/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
         ports:
           - 3306:3306
 
