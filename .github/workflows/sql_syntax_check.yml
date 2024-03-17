@@ -25,7 +25,7 @@ jobs:
 
     - name: Run SQL Linting
       run: |
-        docker exec mysql bash -c "mysql -h localhost -P 3306 -u root -p\"${{ secrets.DB_PASSWORD }}\" < db.sql"
+        docker exec mysql mysql -h localhost -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mysql
