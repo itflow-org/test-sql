@@ -23,9 +23,12 @@ jobs:
     - name: Wait for MariaDB to Start
       run: sleep 10
 
+    - name: Get MariaDB Container IP
+      run: echo "::set-env name=MARIADB_IP::$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' mysql)"
+
     - name: Run SQL Linting
       run: |
-        docker exec mysql mysql -h localhost -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
+        docker exec mysql mysql -h ${{ env.MARIADB_IP }} -P 3306 -u root -p"${{ secrets.DB_PASSWORD }}" < db.sql
 
     - name: Stop MariaDB
       run: docker stop mysql
