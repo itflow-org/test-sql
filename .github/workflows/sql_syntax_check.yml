@@ -29,6 +29,10 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
+      - name: Generate init.sql
+        run: |
+          echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > init.sql
+
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
