@@ -10,21 +10,6 @@ jobs:
     name: Check SQL Syntax
     runs-on: ubuntu-latest
 
-    services:
-      mariadb:
-        image: mariadb:latest
-        env:
-          MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
-          MYSQL_DATABASE: test  # optional, create a test database if needed
-        options: >-
-          --health-cmd="mysqladmin ping"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
-          --mount type=bind,source=${{ github.workspace }}/init.sql,target=/docker-entrypoint-initdb.d/init.sql,readonly
-        ports:
-          - 3306:3306
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
@@ -34,12 +19,25 @@ jobs:
           echo "DELETE FROM mysql.proxies_priv WHERE Host != 'localhost';" > ${{ github.workspace }}/init.sql
           echo "Generated init.sql at: ${{ github.workspace }}/init.sql"  # Output file path
 
+      - name: Start MariaDB Service
+        run: |
+          docker run -d --name mariadb \
+            -e MYSQL_RANDOM_ROOT_PASSWORD=yes \
+            -e MYSQL_DATABASE=test \
+            -v ${{ github.workspace }}/init.sql:/docker-entrypoint-initdb.d/init.sql \
+            -p 3306:3306 \
+            --health-cmd="mysqladmin ping" \
+            --health-interval=10s \
+            --health-timeout=5s \
+            --health-retries=3 \
+            mariadb:latest
+
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
 
       - name: Run SQL Linting
         run: |
-          password="${{ job.services.mariadb.env.MYSQL_ROOT_PASSWORD }}"
+          password=$(docker inspect -f '{{ index .Config.Env 0 }}' mariadb | cut -d'=' -f2)
           docker exec -i mariadb mysql -uroot -p"$password" < db.sql
 
       - name: Stop MariaDB
