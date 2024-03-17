@@ -1,4 +1,4 @@
-name: SQL Syntax Check
+name: SQL Syntax Check for db.sql
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   syntax_check:
-    name: Check SQL Syntax
+    name: Check db.sql SQL Syntax
     runs-on: ubuntu-latest
 
     services:
@@ -30,8 +30,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Run SQL Linting
+      - name: Import & Lint db.sql
         run: mysql --host 127.0.0.1 -uuser -ppassword itfsyntaxdb < db.sql
 
-      - name: Show tables
+      - name: Show imported tables
         run: mysql --host 127.0.0.1 -uuser -ppassword itfsyntaxdb -e "show tables;"
