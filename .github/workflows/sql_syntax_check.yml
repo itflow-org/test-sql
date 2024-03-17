@@ -30,11 +30,8 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Show DBs
-        run: mysql --host 127.0.0.1 -uuser -ppassword -e "SHOW DATABASES;"
-
       - name: Run SQL Linting
         run: mysql --host 127.0.0.1 -uuser -ppassword itflowdb < db.sql
 
-      - name: Stop MariaDB
-        run: docker stop mariadb
+      - name: Show tables
+        run: mysql --host 127.0.0.1 -uuser -ppassword itflowdb -e "show tables;"
