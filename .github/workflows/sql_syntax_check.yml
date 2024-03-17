@@ -14,23 +14,18 @@ jobs:
       mariadb:
         image: mariadb:latest
         env:
-          MYSQL_RANDOM_ROOT_PASSWORD: "yes"  # Generate a random root password
-          MYSQL_DATABASE: test  # optional, create a test database if needed
+          MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+          MARIADB_USER: user
+          MARIADB_PASSWORD: password
         options: >-
-          --health-cmd="mysqladmin ping"
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=3
-          --mount type=bind,source=${{ github.workspace }}/my-resolve.cnf,target=/etc/mysql/my-resolve.cnf,readonly  # Mount the configuration file
-        ports:
-          - 3306:3306
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-
-      - name: Generate my-resolve.cnf
-        run: echo "[mariadb]\ndisable-skip-name-resolve=1" > ${{ github.workspace }}/my-resolve.cnf
 
       - name: Wait for MariaDB to Start
         run: dockerize -wait tcp://127.0.0.1:3306 -timeout 1m
@@ -38,7 +33,7 @@ jobs:
       - name: Run SQL Linting
         run: |
           password="${{ secrets.MYSQL_ROOT_PASSWORD }}"
-          docker exec -i mariadb mysql -uroot -p"${password}" < db.sql
+          docker exec -i mariadb mysql -uuser -ppassword < db.sql
 
       - name: Stop MariaDB
         run: docker stop mariadb
